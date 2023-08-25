@@ -284,6 +284,8 @@ class UserController {
       List
     } = req.body;
 
+    console.log("req=====",req.body);
+
     if (
       userImg &&
       name &&
@@ -342,8 +344,19 @@ class UserController {
 
   static vendorAddJob = async (req, res) => {
 
-    const { userImg, name, title, description, packageList } = req.body;
-    if (( userImg, name, title, description, packageList )) {
+    const { userImg, name, title, description, 
+      noofpanels,
+      battery,
+      price,
+      area,
+      extraExpense,
+      ttklWatts,
+      daysForInstalation
+    } = req.body;
+
+    console.log("vendorAddJob==>",req.body);
+
+    if ( userImg, name, title, description, noofpanels, battery, price, area, extraExpense, ttklWatts, daysForInstalation) {
       try {
         console.log("try pylay",req);
         const doc = new AddVendorJobModel({
@@ -352,13 +365,13 @@ class UserController {
           title: title,
           description: description,
           packageList: {
-          noofpanels: packageList?.noofpanels,
-          battery: packageList?.battery,
-          price: packageList?.price,
-          area: packageList?.area,
-          extraExpense: packageList?.extraExpense,
-          ttklWatts: packageList?.ttklWatts,
-          daysForInstalation: packageList?.daysForInstalation
+          noofpanels: noofpanels,
+          battery: battery,
+          price: price,
+          area: area,
+          extraExpense: extraExpense,
+          ttklWatts: ttklWatts,
+          daysForInstalation: daysForInstalation
         }
         });
 
@@ -372,7 +385,7 @@ class UserController {
         res.send({ status: false, message: "Unable to Add Job" });
       }
     } else {
-      res.send({ status: false, message: "All fields are required" });
+      res.send({ status: false, message: "All fields are requireds" });
     }
   };
 }
