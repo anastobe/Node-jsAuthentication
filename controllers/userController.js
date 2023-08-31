@@ -2,16 +2,20 @@ import {UserModel,AddUserJobModel, AddVendorJobModel} from '../models/User.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { emailRegix } from '../config/constants.js'
+import upload from '../multerConfig.js';
 
 class UserController {
   static userRegistration = async (req, res) => {
-    const { name, email, password, password_confirmation, tc, type } = req.body;
+
+    const profileImage = req.file ? req.file.filename : ''; 
+
+    const { name, email, password, password_confirmation, tc, type, payment } = req.body;
 
     const user = await UserModel.findOne({ email: email });
     if (user) {
       res.send({ status: false, message: "Email already exists" });
     } else {
-      if (name && email && password && password_confirmation && tc && type) {
+      if (name && email && password && password_confirmation && tc && type && payment && profileImage ) {
         if (password === password_confirmation) {
           try {
             const salt = await bcrypt.genSalt(10);
@@ -20,8 +24,11 @@ class UserController {
               name: name,
               email: email,
               password: hashPassword,
+              password_confirmation: hashPassword,
               tc: tc,
               type: type,
+              payment: payment,
+              profileImage: profileImage
             });
             await doc.save();
             const saved_user = await UserModel.findOne({ email: email });
@@ -49,7 +56,7 @@ class UserController {
           });
         }
       } else {
-        res.send({ status: false, message: "All fields are required" });
+        res.send({ status: false, message: "All fields are requireds" });
       }
     }
   };
@@ -73,6 +80,7 @@ class UserController {
               message: "Login Success",
               token: token,
               usertype: user.type,
+              profileImage: user?.profileImage
             });
           } else {
             res.send({
@@ -251,7 +259,7 @@ class UserController {
 
     try {
       const vendors = await UserModel.find();
-      console.log("-----", vendors);
+
       res.send({ users: vendors, status: true });
 
       // // Connect to the MongoDB database
@@ -318,7 +326,7 @@ class UserController {
   static viewVendorsJobs = async (req, res) => {
     try {
       const vendorJobs = await AddVendorJobModel.find();
-      console.log("-----", vendorJobs);
+
       res.send({ vendorJobs: vendorJobs, status: true });
     } catch (err) {
       // Handle errors
@@ -333,7 +341,7 @@ class UserController {
 
     try {
       const userJobs = await AddUserJobModel.find();
-      console.log("-----", userJobs);
+
       res.send({ userJobs: userJobs, status: true });
     } catch (err) {
       // Handle errors
@@ -386,6 +394,34 @@ class UserController {
       }
     } else {
       res.send({ status: false, message: "All fields are requireds" });
+    }
+  };
+
+  
+  static payment = async (req, res) => {
+
+    const user_id = req.params.user_id;
+    const payment = req.body.payment;
+
+    console.log("this user_id==>",user_id,"==payment==",payment);
+
+    if ( user_id ) {
+    
+      try {
+        // Find the user by their ID
+
+        await UserModel.findByIdAndUpdate(user_id, {
+          $set: { payment: true },
+        });
+        return res.status(200).json({ message: 'Payment successfully', status: true });
+    
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error', status: true  });
+      }
+
+    } else {
+      res.send({ status: false, message: "User Id Is Missing" });
     }
   };
 }
