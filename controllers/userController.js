@@ -424,6 +424,21 @@ class UserController {
       res.send({ status: false, message: "User Id Is Missing" });
     }
   };
+
+  //checking
+  static check = async (req, res) => {
+    // res.send({ "user": req.user })
+
+    try {
+      res.send("checking ok");
+
+    } catch (err) {
+      // Handle errors
+      console.error("Error fetching users:", err);
+
+    }
+  };
+
 }
 
 export default UserController

@@ -33,4 +33,7 @@ router.post('/vendor-add-job', UserController.vendorAddJob)
 //generalPayment
 router.post('/payment/:user_id', UserController.payment)
 
+//checking live
+router.get('/check', UserController.check)
+
 export default router
