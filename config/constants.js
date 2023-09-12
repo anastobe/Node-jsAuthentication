@@ -1,0 +1,1 @@
+export const emailRegix = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
