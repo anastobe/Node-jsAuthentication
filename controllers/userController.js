@@ -7,10 +7,9 @@ import upload from '../multerConfig.js';
 class UserController {
   static userRegistration = async (req, res) => {
 
-    const profileImage = req.file ? req.file.filename : ''; 
-
-    const { name, email, password, password_confirmation, tc, type, payment } = req.body;
-
+    // const profileImage = req.file ? req.file.filename : ''; 
+    
+    const { name, email, password, password_confirmation, tc, type, payment, profileImage } = req.body;
     const user = await UserModel.findOne({ email: email });
     if (user) {
       res.send({ status: false, message: "Email already exists" });
@@ -55,7 +54,8 @@ class UserController {
             message: "Password and Confirm Password doesn't match",
           });
         }
-      } else {
+      }
+       else {
         res.send({ status: false, message: "All fields are requireds" });
       }
     }
