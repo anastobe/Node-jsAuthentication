@@ -1,20 +1,36 @@
-import {UserModel,AddUserJobModel, AddVendorJobModel} from '../models/User.js'
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
-import { emailRegix } from '../config/constants.js'
-import upload from '../multerConfig.js';
+import {
+  UserModel,
+  AddUserJobModel,
+  AddVendorJobModel,
+} from "../models/User.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { emailRegix } from "../config/constants.js";
+import upload from "../multerConfig.js";
+import nodemailer from "nodemailer";
 
 class UserController {
   static userRegistration = async (req, res) => {
+    // const profileImage = req.file ? req.file.filename : "";
 
-    // const profileImage = req.file ? req.file.filename : ''; 
-    
     const { name, email, password, password_confirmation, tc, type, payment, profileImage } = req.body;
+
+    console.log("user registration==>", req);
+
     const user = await UserModel.findOne({ email: email });
     if (user) {
       res.send({ status: false, message: "Email already exists" });
     } else {
-      if (name && email && password && password_confirmation && tc && type && payment && profileImage ) {
+      if (
+        name &&
+        email &&
+        password &&
+        password_confirmation &&
+        tc &&
+        type &&
+        payment &&
+        profileImage
+      ) {
         if (password === password_confirmation) {
           try {
             const salt = await bcrypt.genSalt(10);
@@ -27,7 +43,7 @@ class UserController {
               tc: tc,
               type: type,
               payment: payment,
-              profileImage: profileImage
+              profileImage: profileImage,
             });
             await doc.save();
             const saved_user = await UserModel.findOne({ email: email });
@@ -55,7 +71,7 @@ class UserController {
           });
         }
       }
-       else {
+      else {
         res.send({ status: false, message: "All fields are requireds" });
       }
     }
@@ -80,7 +96,10 @@ class UserController {
               message: "Login Success",
               token: token,
               usertype: user.type,
-              profileImage: user?.profileImage
+              profileImage: user?.profileImage,
+              id: user?.id,
+              name: user?.name,
+              email: user?.email,
             });
           } else {
             res.send({
@@ -97,6 +116,43 @@ class UserController {
     } catch (error) {
       console.log(error);
       res.send({ status: false, message: "Unable to Login" });
+    }
+  };
+
+  static sendOtp = async (req, res) => {
+    try {
+      let OTP = Math.floor(100000 + Math.random() * 900000);
+
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'Email error' });
+      }
+
+      const mailOptions = {
+        from: "anastobe968@gmail.com",
+        to: email,
+        subject: "Otp Send By Solar",
+        text: `Your OTP is : ${OTP}`,
+      };
+      let transport = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "anastobe968@gmail.com",
+          pass: "paqxuiskbmszhvea",
+        },
+      });
+      transport.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log(error);
+        }
+      });
+
+      return res
+        .status(200)
+        .cookie({ token: OTP })
+        .send({ status: true, message: "Otp send successfully" });
+    } catch (error) {
+      res.send({ status: false, message: "Unable to send OTP" });
     }
   };
 
@@ -145,46 +201,49 @@ class UserController {
   //   }
   // }
 
-  // static upDateProfile = async (req, res) => {
-  //   console.log("========>", req);
+  static upDateProfile = async (req, res) => {
+    console.log("========>", req);
 
-  //   const { name, email, id } = req.body;
-  //   if (!emailRegix.test(email)) {
-  //     res.send({ status: "failed", message: "invalid email" });
-  //     return;
-  //   } else if (name.length < 4) {
-  //     res.send({
-  //       status: "failed",
-  //       message: "name must be 4 digit character long",
-  //     });
-  //     return;
-  //   } else {
-  //     try {
-  //       // const userId = req.params.userId;
-  //       const updatedUserData = req.body;
+    const { name, email, id } = req.body;
+    if (!emailRegix.test(email)) {
+      res.send({ status: "failed", message: "invalid email" });
+      return;
+    } else if (name.length < 4) {
+      res.send({
+        status: "failed",
+        message: "name must be 4 digit character long",
+      });
+      return;
+    } else {
+      try {
+        // const userId = req.params.userId;
+        const updatedUserData = req.body;
 
-  //       // Find the user by ID and update
-  //       const updatedUser = await UserModel.findByIdAndUpdate(
-  //         id,
-  //         updatedUserData,
-  //         {
-  //           new: true, // Returns the updated document
-  //         }
-  //       );
+        // Find the user by ID and update
+        const updatedUser = await UserModel.findByIdAndUpdate(
+          id,
+          updatedUserData,
+          {
+            new: true, // Returns the updated document
+          }
+        );
 
-  //       console.log("agr hogya update tou===>", updatedUser);
+        if (!updatedUser) {
+          return res.status(404).json({ message: "User not found" });
+        }
 
-  //       if (!updatedUser) {
-  //         return res.status(404).json({ message: "User not found" });
-  //       }
-
-  //       return res.json(updatedUser);
-  //     } catch (error) {
-  //       console.error(error);
-  //       return res.status(500).json({ message: "Internal server error" });
-  //     }
-  //   }
-  // };
+        res.send({
+          status: true,
+          message: "Profile Updated Successfully",
+          updatedUser: updatedUser,
+        });
+        return;
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  };
 
   static loggedUser = async (req, res) => {
     res.send({ user: req.user, status: true });
@@ -195,23 +254,47 @@ class UserController {
     if (email) {
       const user = await UserModel.findOne({ email: email });
       if (user) {
-        const secret = user._id + process.env.JWT_SECRET_KEY;
-        const token = jwt.sign({ userID: user._id }, secret, {
-          expiresIn: "15m",
+
+        const OTP = otpGenerator.generate(6, {
+          digits: true,
+          upperCaseAlphabets: false,
+          lowerCaseAlphabets: false,
+          specialChars: false,
         });
-        const link = `http://127.0.0.1:3000/api/user/reset/${user._id}/${token}`;
-        console.log(link);
-        // // Send Email
-        // let info = await transporter.sendMail({
-        //   from: process.env.EMAIL_FROM,
-        //   to: user.email,
-        //   subject: "GeekShop - Password Reset Link",
-        //   html: `<a href=${link}>Click Here</a> to Reset Your Password`
-        // })
-        res.send({
-          status: "success",
-          message: "Password Reset Email Sent... Please Check Your Email",
+        const mailOptions = {
+          from: "anastobe968@gmail.com",
+          to: req.body.email,
+          subject: "Otp Send By SAAB",
+          text: `Your OTP is : ${OTP}`,
+        };
+        let transport = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: "anastobe968@gmail.com",
+            pass: "otwduudpsiaonjaz",
+          },
         });
+        transport.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log(error);
+          }
+        });
+        const otp = new Otp({
+          email: req.body.email,
+          otp: OTP,
+        });
+        const result = await otp.save();
+        return res
+          .status(200)
+          .cookie({ token: OTP })
+          .send({ status: true, message: "Otp send successfully" });
+
+        console.log("after saving===>", result);
+
+        // res.send({
+        //   status: "success",
+        //   message: "Password Reset Email Sent... Please Check Your Email",
+        // });
       } else {
         res.send({ status: "failed", message: "Email doesn't exists" });
       }

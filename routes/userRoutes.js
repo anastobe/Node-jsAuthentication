@@ -8,9 +8,11 @@ import upload from '../multerConfig.js';
 router.use('/changepassword', checkUserAuth)
 router.use('/loggeduser', checkUserAuth)
 router.use('/vendors', checkUserAuth)
+router.use('/verifyuser', UserController.sendOtp)
 
 // Public Routes
 router.post('/register', upload.single('profileImage'), UserController.userRegistration)
+// router.post('/uploadimg', upload.single('profileImage'), UserController.userRegistration)
 router.post('/login', UserController.userLogin)
 router.post('/send-reset-password-email', UserController.sendUserPasswordResetEmail)
 router.post('/reset-password/:id/:token', UserController.userPasswordReset)
@@ -18,7 +20,7 @@ router.post('/reset-password/:id/:token', UserController.userPasswordReset)
 // Protected Routes
 router.post('/changepassword', UserController.changeUserPassword)
 router.get('/loggeduser', UserController.loggedUser)
-// router.put('/updateProfile', UserController.upDateProfile)
+router.put('/updateProfile', UserController.upDateProfile)
 
 //user/client routes
 router.get('/vendors', UserController.allVendors)
