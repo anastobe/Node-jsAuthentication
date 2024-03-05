@@ -28,7 +28,6 @@ class UserController {
         password_confirmation &&
         tc &&
         type &&
-        payment &&
         profileImage
       ) {
         if (password === password_confirmation) {
@@ -371,6 +370,7 @@ class UserController {
       userImg,
       name,
       title,
+      firebase_id,
       description,
       List
     } = req.body;
@@ -381,6 +381,7 @@ class UserController {
       userImg &&
       name &&
       title &&
+      firebase_id &&
       description &&
       List
     ) {
@@ -389,6 +390,7 @@ class UserController {
           userImg: userImg,
           name: name,
           title: title,
+          firebase_id: firebase_id,
           description: description,
           List: List
         });
@@ -402,7 +404,7 @@ class UserController {
         res.send({ status: false, message: "Unable to Register" });
       }
     } else {
-      res.send({ status: false, message: "All fields are required" });
+      res.send({ status: false, message: "All fields are requireds" });
     }
   };
 
@@ -435,7 +437,7 @@ class UserController {
 
   static vendorAddJob = async (req, res) => {
 
-    const { userImg, name, title, description, 
+    const { userImg, name, title,  firebase_id, description, 
       noofpanels,
       battery,
       price,
@@ -447,13 +449,14 @@ class UserController {
 
     console.log("vendorAddJob==>",req.body);
 
-    if ( userImg, name, title, description, noofpanels, battery, price, area, extraExpense, ttklWatts, daysForInstalation) {
+    if ( userImg, name, title, firebase_id, description, noofpanels, battery, price, area, extraExpense, ttklWatts, daysForInstalation) {
       try {
         console.log("try pylay",req);
         const doc = new AddVendorJobModel({
           userImg: userImg,
           name: name,
           title: title,
+          firebase_id: firebase_id,
           description: description,
           packageList: {
           noofpanels: noofpanels,

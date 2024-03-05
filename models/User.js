@@ -16,6 +16,7 @@ const addUserJobSchema = new mongoose.Schema({
   userImg: { type: String, required: true },
   name: { type: String, required: true },
   title: { type: String, required: true },
+  firebase_id:  { type: String, required: true },
   description: { type: String, required: true },
   List: { type: Array, required: true }
 });
@@ -24,6 +25,7 @@ const addVendorJobSchema = new mongoose.Schema({
   userImg: { type: String, required: true },
   name: { type: String, required: true },
   title: { type: String, required: true },
+  firebase_id:  { type: String, required: true },
   description: { type: String, required: true },
   packageList: {
   noofpanels: { type: String, required: true },
